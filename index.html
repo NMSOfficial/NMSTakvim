@@ -9,7 +9,505 @@
         body {
             font-family: 'Inter', sans-serif;
             background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NMSTakvim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .neon-text {
+            text-shadow: 0 0 3px #fff, 0 0 7px #fff, 0 0 10px #bb00ff, 0 0 15px #bb00ff, 0 0 20px #bb00ff;
+        }
+        .neon-text-subtle {
+            text-shadow: 0 0 2px #fff, 0 0 5px #bb00ff;
+        }
+
+        .neon-border-focus:focus {
+            box-shadow: 0 0 0 2px rgba(179, 0, 255, 0.4), 0 0 8px rgba(179, 0, 255, 0.6);
+        }
+
+        .neon-button-indigo:hover {
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.6), 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+        .neon-button-red:hover {
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6), 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+        .neon-button-yellow:hover {
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.6), 0 0 15px rgba(234, 179, 8, 0.4);
+        }
+        .neon-button-purple:hover {
+            box-shadow: 0 0 8px rgba(192, 38, 211, 0.6), 0 0 15px rgba(192, 38, 211, 0.4);
+        }
+
+        .neon-card-glow {
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.1), 0 0 7px rgba(179, 0, 255, 0.2), 0 0 10px rgba(236, 72, 153, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+        .neon-card-glow:hover {
+            box-shadow: 0 0 7px rgba(255, 255, 255, 0.3), 0 0 15px rgba(179, 0, 255, 0.5), 0 0 20px rgba(236, 72, 153, 0.5);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-4 md:p-8 flex flex-col items-center justify-center font-inter">
+
+    <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-4xl border border-white/20">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600 neon-text drop-shadow-lg">
+            NMSTakvim
+        </h1>
+
+        <div class="flex justify-between items-center mb-6 px-4">
+            <button id="oncekiAyBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold
+              transition-all duration-300 shadow-lg shadow-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/70 neon-button-indigo">
+                Önceki Ay
+            </button>
+            <h2 id="mevcutAyGoster" class="text-3xl font-bold text-white neon-text-subtle"></h2>
+            <button id="sonrakiAyBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold
+              transition-all duration-300 shadow-lg shadow-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/70 neon-button-indigo">
+                Sonraki Ay
+            </button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-2 text-white text-center mb-6">
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Pzt</div>
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Sal</div>
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Çar</div>
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Per</div>
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Cum</div>
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Cmt</div>
+            <div class="font-semibold text-lg text-pink-300 neon-text-subtle">Paz</div>
+            <div id="takvimGunleriIzgara" class="contents">
+            </div>
+        </div>
+
+        <div id="seciliTarihEtkinlikBolumu" class="mt-8 bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-white/20 hidden">
+            <h3 id="seciliTarihGoster" class="text-3xl font-bold text-white mb-4 text-center neon-text"></h3>
+            <button id="etkinlikEkleBtn" class="w-full px-6 py-3 mb-6 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg
+              transition-all duration-300 shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-500/70 neon-button-purple">
+                + Yeni Etkinlik Ekle
+            </button>
+            <div id="etkinlikListesi" class="space-y-4">
+            </div>
+            <p id="etkinlikYokMesaji" class="text-white/70 text-center text-lg italic mt-4 hidden">Bu güne ait bir etkinlik bulunmamaktadır.</p>
+        </div>
+    </div>
+
+    <div id="etkinlikFormuModali" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden">
+        <form id="etkinlikFormu" class="bg-white/10 p-6 rounded-xl shadow-2xl border border-white/20
+          backdrop-blur-lg w-full max-w-md animate-fade-in-up">
+            <h2 id="formBaslik" class="text-3xl font-bold text-white mb-6 text-center drop-shadow-lg neon-text"></h2>
+            <input type="hidden" id="etkinlikId">
+            <div class="mb-4">
+                <label for="etkinlikBaslik" class="block text-white text-lg font-semibold mb-2 neon-text-subtle">
+                    Başlık <span class="text-red-400">*</span>
+                </label>
+                <input
+                    type="text"
+                    id="etkinlikBaslik"
+                    class="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 neon-border-focus"
+                    required
+                    placeholder="Etkinlik Başlığı"
+                />
+            </div>
+            <div class="mb-4">
+                <label for="etkinlikLink" class="block text-white text-lg font-semibold mb-2 neon-text-subtle">
+                    Link (Opsiyonel)
+                </label>
+                <input
+                    type="url"
+                    id="etkinlikLink"
+                    class="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 neon-border-focus"
+                    placeholder="https://example.com"
+                />
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="etkinlikTarih" class="block text-white text-lg font-semibold mb-2 neon-text-subtle">
+                        Tarih <span class="text-red-400">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        id="etkinlikTarih"
+                        class="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 neon-border-focus"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="etkinlikSaat" class="block text-white text-lg font-semibold mb-2 neon-text-subtle">
+                        Saat
+                    </label>
+                    <input
+                        type="time"
+                        id="etkinlikSaat"
+                        class="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 neon-border-focus"
+                    />
+                </div>
+            </div>
+            <div class="flex justify-end space-x-4">
+                <button
+                    type="button"
+                    id="etkinlikIptalBtn"
+                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg
+                    transition-all duration-300 shadow-lg shadow-red-500/50 hover:shadow-xl hover:shadow-red-500/70 neon-button-red"
+                >
+                    İptal
+                </button>
+                <button
+                    type="submit"
+                    class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg
+                    transition-all duration-300 shadow-lg shadow-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/70 neon-button-indigo"
+                >
+                    Kaydet
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let mevcutTarih = new Date();
+        let seciliTarih = null;
+        let etkinlikler = [];
+
+        const mevcutAyGoster = document.getElementById('mevcutAyGoster');
+        const takvimGunleriIzgara = document.getElementById('takvimGunleriIzgara');
+        const oncekiAyBtn = document.getElementById('oncekiAyBtn');
+        const sonrakiAyBtn = document.getElementById('sonrakiAyBtn');
+        const seciliTarihEtkinlikBolumu = document.getElementById('seciliTarihEtkinlikBolumu');
+        const seciliTarihGoster = document.getElementById('seciliTarihGoster');
+        const etkinlikEkleBtn = document.getElementById('etkinlikEkleBtn');
+        const etkinlikListesi = document.getElementById('etkinlikListesi');
+        const etkinlikYokMesaji = document.getElementById('etkinlikYokMesaji');
+
+        const etkinlikFormuModali = document.getElementById('etkinlikFormuModali');
+        const etkinlikFormu = document.getElementById('etkinlikFormu');
+        const formBaslik = document.getElementById('formBaslik');
+        const etkinlikIdInput = document.getElementById('etkinlikId');
+        const etkinlikBaslikInput = document.getElementById('etkinlikBaslik');
+        const etkinlikLinkInput = document.getElementById('etkinlikLink');
+        const etkinlikTarihInput = document.getElementById('etkinlikTarih');
+        const etkinlikSaatInput = document.getElementById('etkinlikSaat');
+        const etkinlikIptalBtn = document.getElementById('etkinlikIptalBtn');
+
+        function uuidOlustur() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function etkinlikleriYukle() {
+            const depolanmisEtkinlikler = localStorage.getItem('neonCalendarEvents');
+            if (depolanmisEtkinlikler) {
+                etkinlikler = JSON.parse(depolanmisEtkinlikler).map(etkinlik => ({
+                    ...etkinlik,
+                    date: new Date(etkinlik.date)
+                }));
+            } else {
+                etkinlikler = [];
+            }
+        }
+
+        function etkinlikleriKaydet() {
+            const depolanacakEtkinlikler = etkinlikler.map(etkinlik => ({
+                ...etkinlik,
+                date: etkinlik.date.toISOString()
+            }));
+            localStorage.setItem('neonCalendarEvents', JSON.stringify(depolanacakEtkinlikler));
+        }
+
+        function takvimiRenderEt() {
+            mevcutAyGoster.textContent = mevcutTarih.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+            takvimGunleriIzgara.innerHTML = '';
+
+            const yil = mevcutTarih.getFullYear();
+            const ay = mevcutTarih.getMonth();
+            const ayinIlkGunu = new Date(yil, ay, 1).getDay();
+            const ayinGunSayisi = new Date(yil, ay + 1, 0).getDate();
+
+            const baslangicOfseti = (ayinIlkGunu === 0) ? 6 : ayinIlkGunu - 1;
+            for (let i = 0; i < baslangicOfseti; i++) {
+                const bosDiv = document.createElement('div');
+                bosDiv.className = 'p-2 text-center text-gray-400';
+                takvimGunleriIzgara.appendChild(bosDiv);
+            }
+
+            for (let i = 1; i <= ayinGunSayisi; i++) {
+                const gunDiv = document.createElement('div');
+                const gunTarih = new Date(yil, ay, i);
+
+                gunDiv.dataset.date = gunTarih.toISOString().substring(0, 10);
+                gunDiv.textContent = i;
+                gunDiv.className = `p-2 text-center cursor-pointer transition-all duration-300 relative group`;
+
+                const seciliMi = seciliTarih &&
+                    seciliTarih.getDate() === i &&
+                    seciliTarih.getMonth() === ay &&
+                    seciliTarih.getFullYear() === yil;
+
+                const etkinlikVarMi = etkinlikler.some(etkinlik => {
+                    const etkinlikTarih = new Date(etkinlik.date);
+                    return etkinlikTarih.getDate() === i &&
+                           etkinlikTarih.getMonth() === ay &&
+                           etkinlikTarih.getFullYear() === yil;
+                });
+
+                const bugun = new Date();
+                const bugunMu = gunTarih.getDate() === bugun.getDate() &&
+                                bugun.getMonth() === bugun.getMonth() &&
+                                bugun.getFullYear() === bugun.getFullYear();
+
+                if (seciliMi) {
+                    gunDiv.classList.add('bg-indigo-600', 'text-white', 'rounded-lg', 'shadow-lg', 'shadow-indigo-500/50', 'transform', 'scale-105');
+                } else if (bugunMu) {
+                    gunDiv.classList.add('border-2', 'border-indigo-400', 'rounded-lg', 'text-white');
+                } else if (etkinlikVarMi) {
+                    gunDiv.classList.add('text-indigo-300', 'font-bold');
+                } else {
+                    gunDiv.classList.add('text-white');
+                }
+
+                gunDiv.classList.add('hover:bg-indigo-700/50', 'hover:text-white', 'rounded-lg');
+
+                if (etkinlikVarMi) {
+                    const etkinlikNoktasi = document.createElement('span');
+                    etkinlikNoktasi.className = 'absolute bottom-1 right-1 w-2 h-2 bg-pink-500 rounded-full animate-pulse group-hover:hidden';
+                    gunDiv.appendChild(etkinlikNoktasi);
+                }
+
+                gunDiv.addEventListener('click', () => {
+                    seciliTarih = gunTarih;
+                    takvimiRenderEt();
+                    seciliTarihEtkinlikleriniRenderEt();
+                });
+                takvimGunleriIzgara.appendChild(gunDiv);
+            }
+        }
+
+        function seciliTarihEtkinlikleriniRenderEt() {
+            if (!seciliTarih) {
+                seciliTarihEtkinlikBolumu.classList.add('hidden');
+                return;
+            }
+
+            seciliTarihEtkinlikBolumu.classList.remove('hidden');
+            seciliTarihGoster.textContent = seciliTarih.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            etkinlikListesi.innerHTML = '';
+
+            const gunEtkinlikleri = etkinlikler.filter(etkinlik => {
+                const etkinlikTarih = new Date(etkinlik.date);
+                return etkinlikTarih.getDate() === seciliTarih.getDate() &&
+                       etkinlikTarih.getMonth() === seciliTarih.getMonth() &&
+                       etkinlikTarih.getFullYear() === seciliTarih.getFullYear();
+            }).sort((a, b) => a.date - b.date); // Saate göre sırala
+
+            if (gunEtkinlikleri.length === 0) {
+                etkinlikYokMesaji.classList.remove('hidden');
+            } else {
+                etkinlikYokMesaji.classList.add('hidden');
+                gunEtkinlikleri.forEach(etkinlik => {
+                    const etkinlikKarti = document.createElement('div');
+                    etkinlikKarti.className = 'bg-white/15 backdrop-blur-md rounded-xl p-4 flex justify-between items-center border border-white/15 shadow-md shadow-black/20 neon-card-glow';
+                    etkinlikKarti.innerHTML = `
+                        <div>
+                            <h4 class="text-xl font-bold text-white neon-text-subtle">${etkinlik.title}</h4>
+                            <p class="text-sm text-gray-200 mt-1">${etkinlik.date.toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}</p>
+                            ${etkinlik.link ? `<a href="${etkinlik.link}" target="_blank" rel="noopener noreferrer" class="text-indigo-300 hover:text-indigo-400 text-sm italic transition-colors duration-200">${etkinlik.link}</a>` : ''}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button data-id="${etkinlik.id}" class="duzenle-btn p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors duration-200 shadow-md neon-button-yellow">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-5.042 5.042L12.008 7.37l-2.829-2.829-3.447 3.447L3 10.5v-.917l5.042-5.042zM15 11a1 1 0 100-2 1 1 0 000 2zM3 13.5V17h3.5L16 6.5 12.5 3 3 13.5z"/></svg>
+                            </button>
+                            <button data-id="${etkinlik.id}" class="sil-btn p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 shadow-md neon-button-red">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            </button>
+                        </div>
+                    `;
+                    etkinlikListesi.appendChild(etkinlikKarti);
+                });
+
+                document.querySelectorAll('.duzenle-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const etkinlikId = e.currentTarget.dataset.id;
+                        const duzenlenecekEtkinlik = etkinlikler.find(etkinlik => etkinlik.id === etkinlikId);
+                        if (duzenlenecekEtkinlik) {
+                            etkinlikFormunuAc(duzenlenecekEtkinlik);
+                        }
+                    });
+                });
+                document.querySelectorAll('.sil-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const etkinlikId = e.currentTarget.dataset.id;
+                        etkinligiSil(etkinlikId);
+                    });
+                });
+            }
+        }
+
+        function etkinlikFormunuAc(etkinlik = null) {
+            etkinlikFormu.reset();
+            etkinlikFormuModali.classList.remove('hidden');
+
+            if (etkinlik) {
+                formBaslik.textContent = 'Etkinliği Düzenle';
+                etkinlikIdInput.value = etkinlik.id;
+                etkinlikBaslikInput.value = etkinlik.title;
+                etkinlikLinkInput.value = etkinlik.link;
+                etkinlikTarihInput.value = etkinlik.date.toISOString().substring(0, 10);
+                etkinlikSaatInput.value = etkinlik.date.toTimeString().substring(0, 5);
+            } else {
+                formBaslik.textContent = 'Yeni Etkinlik Ekle';
+                etkinlikIdInput.value = '';
+                etkinlikBaslikInput.value = '';
+                etkinlikLinkInput.value = '';
+                if (seciliTarih) {
+                    etkinlikTarihInput.value = seciliTarih.toISOString().substring(0, 10);
+                } else {
+                    etkinlikTarihInput.value = new Date().toISOString().substring(0, 10);
+                }
+                etkinlikSaatInput.value = '';
+            }
+        }
+
+        function etkinlikFormunuKapat() {
+            etkinlikFormuModali.classList.add('hidden');
+        }
+
+        async function etkinligiKaydet(e) {
+            e.preventDefault();
+
+            const id = etkinlikIdInput.value;
+            const baslik = etkinlikBaslikInput.value;
+            const link = etkinlikLinkInput.value;
+            const tarihStr = etkinlikTarihInput.value;
+            const saatStr = etkinlikSaatInput.value || '00:00';
+
+            const tarih = new Date(`${tarihStr}T${saatStr}:00`);
+
+            if (!baslik || !tarihStr) {
+                await gosterAlert("Başlık ve tarih boş bırakılamaz!");
+                return;
+            }
+
+            if (id) {
+                const etkinlikIndeksi = etkinlikler.findIndex(etkinlik => etkinlik.id === id);
+                if (etkinlikIndeksi > -1) {
+                    etkinlikler[etkinlikIndeksi] = { id, title: baslik, link, date: tarih };
+                }
+            } else {
+                const yeniEtkinlik = { id: uuidOlustur(), title: baslik, link, date: tarih };
+                etkinlikler.push(yeniEtkinlik);
+            }
+            etkinlikleriKaydet();
+            etkinlikFormunuKapat();
+            takvimiRenderEt();
+            seciliTarihEtkinlikleriniRenderEt();
+        }
+
+        async function etkinligiSil(id) {
+            const onay = await gosterOnay("Bu etkinliği silmek istediğinizden emin misiniz?");
+            if (onay) {
+                etkinlikler = etkinlikler.filter(etkinlik => etkinlik.id !== id);
+                etkinlikleriKaydet();
+                takvimiRenderEt();
+                seciliTarihEtkinlikleriniRenderEt();
+            }
+        }
+
+        function olayDinleyicileriniAyarla() {
+            oncekiAyBtn.addEventListener('click', () => {
+                mevcutTarih.setMonth(mevcutTarih.getMonth() - 1);
+                seciliTarih = null;
+                takvimiRenderEt();
+                seciliTarihEtkinlikBolumu.classList.add('hidden');
+            });
+
+            sonrakiAyBtn.addEventListener('click', () => {
+                mevcutTarih.setMonth(mevcutTarih.getMonth() + 1);
+                seciliTarih = null;
+                takvimiRenderEt();
+                seciliTarihEtkinlikBolumu.classList.add('hidden');
+            });
+
+            etkinlikEkleBtn.addEventListener('click', () => etkinlikFormunuAc(null));
+            etkinlikIptalBtn.addEventListener('click', etkinlikFormunuKapat);
+            etkinlikFormu.addEventListener('submit', etkinligiKaydet);
+        }
+
+        window.onload = function() {
+            etkinlikleriYukle();
+            takvimiRenderEt();
+            olayDinleyicileriniAyarla();
+        };
+
+        function gosterAlert(mesaj) {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                        <div class="bg-white/10 p-6 rounded-xl shadow-2xl border border-white/20 backdrop-blur-lg w-full max-w-sm animate-fade-in-up text-center">
+                            <p class="text-white text-lg mb-6">${mesaj}</p>
+                            <button class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all duration-300 shadow-lg neon-button-indigo" onclick="this.parentNode.parentNode.remove(); resolve(true);">Tamam</button>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            });
+        }
+
+        function gosterOnay(mesaj) {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                        <div class="bg-white/10 p-6 rounded-xl shadow-2xl border border-white/20 backdrop-blur-lg w-full max-w-sm animate-fade-in-up text-center">
+                            <p class="text-white text-lg mb-6">${mesaj}</p>
+                            <div class="flex justify-center space-x-4">
+                                <button class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all duration-300 shadow-lg neon-button-red" data-response="false">İptal</button>
+                                <button class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all duration-300 shadow-lg neon-button-indigo" data-response="true">Evet</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                const modal = document.querySelector('.z-\\[100\\]');
+                modal.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        modal.remove();
+                        resolve(e.target.dataset.response === 'true');
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>
         }
 
         @keyframes gradientAnimation {
