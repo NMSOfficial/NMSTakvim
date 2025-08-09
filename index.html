@@ -4,75 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NMSTakvim</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
-        }
+    <!-- Firebase SDK'ları -->
+    <link rel="stylesheet" href="style.css">
 
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        .neon-text {
-            text-shadow: 0 0 3px #fff, 0 0 7px #fff, 0 0 10px #bb00ff, 0 0 15px #bb00ff, 0 0 20px #bb00ff;
-        }
-        .neon-text-subtle {
-            text-shadow: 0 0 2px #fff, 0 0 5px #bb00ff;
-        }
+        // !!! BURAYI KENDİ FIREBASE PROJENİZİN AYARLARIYLA DOLDURUN !!!
+        // Firebase projenizin ayarlarını buradan alabilirsiniz:
+        // Firebase Konsolu -> Proje Ayarları -> Uygulamalarınız -> Web uygulaması -> Yapılandırma
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTjxfKJevp5YUTLbR2Sjcuqa0Eq1DSyes",
+            authDomain: "nmstakvim.firebaseapp.com",
+            projectId: "nmstakvim",
+            storageBucket: "nmstakvim.firebasestorage.app",
+            messagingSenderId: "256075748103",
+            appId: "1:256075748103:web:7b411e424c8b841d062ba2",
+            measurementId: "G-PBX77J8TGW"
+        };
 
-        .neon-border-focus:focus {
-            box-shadow: 0 0 0 2px rgba(179, 0, 255, 0.4), 0 0 8px rgba(179, 0, 255, 0.6);
-        }
 
-        .neon-button-indigo:hover {
-            box-shadow: 0 0 8px rgba(99, 102, 241, 0.6), 0 0 15px rgba(99, 102, 241, 0.4);
-        }
-        .neon-button-red:hover {
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6), 0 0 15px rgba(239, 68, 68, 0.4);
-        }
-        .neon-button-yellow:hover {
-            box-shadow: 0 0 8px rgba(234, 179, 8, 0.6), 0 0 15px rgba(234, 179, 8, 0.4);
-        }
-        .neon-button-purple:hover {
-            box-shadow: 0 0 8px rgba(192, 38, 211, 0.6), 0 0 15px rgba(192, 38, 211, 0.4);
-        }
 
-        .neon-card-glow {
-            box-shadow: 0 0 3px rgba(255, 255, 255, 0.1), 0 0 7px rgba(179, 0, 255, 0.2), 0 0 10px rgba(236, 72, 153, 0.2);
-            transition: all 0.3s ease-in-out;
-        }
-        .neon-card-glow:hover {
-            box-shadow: 0 0 7px rgba(255, 255, 255, 0.3), 0 0 15px rgba(179, 0, 255, 0.5), 0 0 20px rgba(236, 72, 153, 0.5);
-            transform: translateY(-2px);
-        }
+        // Firebase Uygulamasını Başlat
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        @keyframes fade-in-up {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .animate-fade-in-up {
-            animation: fade-in-up 0.3s ease-out forwards;
-        }
-    </style>
+        // Kaptanınızın Firebase Authentication'daki UID'si (Admin yetkisi için)
+        // Yönetici hesabını oluşturduktan sonra bu UID'yi buraya yapıştıracaksınız.
+        const ADMIN_UID = "2CRPV6IfosNzIFRTzg3a7GumWr72";
+
+        // Global Firebase ve Auth nesnelerini erişilebilir yap
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.ADMIN_UID = ADMIN_UID;
+    </script>
+    
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-4 md:p-8 flex flex-col items-center justify-center font-inter">
 
     <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-4xl border border-white/20">
-        <h1 class="text-4xl md:text-5xl font-extrabold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-orange-500 drop-shadow-md">
-         NMSTakvim
+
+        <h1 class="text-4xl md:text-5xl font-extrabold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300/80 to-orange-500/80 drop-shadow-md">
+            NMSTakvim
         </h1>
 
+
+        <!-- Admin Giriş / Çıkış Bölümü -->
+        <div class="flex justify-end mb-4">
+            <div id="adminDurum" class="flex items-center space-x-2 text-white text-sm">
+                <span id="kullaniciEposta" class="font-semibold text-cyan-200">Misafir</span>
+                <button id="adminGirisCikisBtn" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 shadow-lg shadow-blue-500/50">Giriş Yap</button>
+            </div>
+        </div>
 
         <div class="flex justify-between items-center mb-6 px-4">
             <button id="oncekiAyBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold
@@ -87,13 +76,13 @@
         </div>
 
         <div class="grid grid-cols-7 gap-2 text-white text-center mb-6">
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Pzt</div>
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Sal</div>
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Çar</div>
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Per</div>
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Cum</div>
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Cmt</div>
-            <div class="font-semibold text-lg text-cyan-300 neon-text-subtle">Paz</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Pzt</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Sal</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Çar</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Per</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Cum</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Cmt</div>
+            <div class="font-semibold text-lg text-cyan-300 neon-text-cyan">Paz</div>
             <div id="takvimGunleriIzgara" class="contents">
             </div>
         </div>
@@ -110,6 +99,31 @@
         </div>
     </div>
 
+    <!-- Admin Giriş Modalı -->
+    <div id="adminGirisModali" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-400/20 rounded-3xl shadow-xl w-full max-w-md p-8 animate-fade-in-up transform scale-95 transition-all duration-300 neon-card-glow">
+            <h2 class="text-3xl font-bold text-center text-white neon-text-subtle mb-6">Yönetici Girişi</h2>
+            
+            <form id="adminGirisFormu" class="space-y-6">
+                <div>
+                    <label for="adminEmail" class="block text-sm font-medium text-indigo-200 neon-text-subtle mb-2">E-posta Adresi</label>
+                    <input type="email" id="adminEmail" required class="w-full p-3 bg-white/10 text-white rounded-xl border border-transparent focus:border-indigo-400 focus:bg-white/20 outline-none transition-all duration-300 neon-border-focus" placeholder="kaptan@ornek.com">
+                </div>
+                
+                <div>
+                    <label for="adminSifre" class="block text-sm font-medium text-indigo-200 neon-text-subtle mb-2">Şifre</label>
+                    <input type="password" id="adminSifre" required class="w-full p-3 bg-white/10 text-white rounded-xl border border-transparent focus:border-indigo-400 focus:bg-white/20 outline-none transition-all duration-300 neon-border-focus" placeholder="••••••••">
+                </div>
+                
+                <div class="flex justify-between space-x-4 pt-4">
+                    <button type="button" id="adminGirisIptalBtn" class="flex-1 py-3 px-6 bg-red-600/70 hover:bg-red-700/80 text-white font-bold rounded-xl shadow-lg transition-all duration-300 neon-button-red">İptal</button>
+                    <button type="submit" class="flex-1 py-3 px-6 bg-indigo-600/70 hover:bg-indigo-700/80 text-white font-bold rounded-xl shadow-lg transition-all duration-300 neon-button-indigo">Giriş Yap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Etkinlik Formu Modalı -->
     <div id="etkinlikFormuModali" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden">
         <form id="etkinlikFormu" class="bg-white/10 p-6 rounded-xl shadow-2xl border border-white/20
           backdrop-blur-lg w-full max-w-md animate-fade-in-up">
@@ -181,10 +195,19 @@
         </form>
     </div>
 
-    <script>
+    <script type="module">
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase ve Auth nesnelerine erişim
+        const auth = window.firebaseAuth;
+        const db = window.firestoreDb;
+        const ADMIN_UID = window.ADMIN_UID;
+
         let mevcutTarih = new Date();
         let seciliTarih = null;
         let etkinlikler = [];
+        let adminGirisYapildiMi = false; // Admin giriş durumu
 
         const mevcutAyGoster = document.getElementById('mevcutAyGoster');
         const takvimGunleriIzgara = document.getElementById('takvimGunleriIzgara');
@@ -206,6 +229,14 @@
         const etkinlikSaatInput = document.getElementById('etkinlikSaat');
         const etkinlikIptalBtn = document.getElementById('etkinlikIptalBtn');
 
+        const adminGirisModali = document.getElementById('adminGirisModali');
+        const adminGirisFormu = document.getElementById('adminGirisFormu');
+        const adminEmailInput = document.getElementById('adminEmail');
+        const adminSifreInput = document.getElementById('adminSifre');
+        const adminGirisIptalBtn = document.getElementById('adminGirisIptalBtn');
+        const adminGirisCikisBtn = document.getElementById('adminGirisCikisBtn');
+        const kullaniciEpostaGoster = document.getElementById('kullaniciEposta');
+
         function uuidOlustur() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -213,24 +244,21 @@
             });
         }
 
+        // Firestore'dan etkinlikleri gerçek zamanlı olarak yükle
         function etkinlikleriYukle() {
-            const depolanmisEtkinlikler = localStorage.getItem('neonCalendarEvents');
-            if (depolanmisEtkinlikler) {
-                etkinlikler = JSON.parse(depolanmisEtkinlikler).map(etkinlik => ({
-                    ...etkinlik,
-                    date: new Date(etkinlik.date)
+            const etkinliklerKoleksiyonu = collection(db, 'events'); // 'events' koleksiyonunu kullanacağız
+            onSnapshot(etkinliklerKoleksiyonu, (snapshot) => {
+                etkinlikler = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    date: doc.data().date.toDate() // Firestore Timestamp'i Date objesine dönüştür
                 }));
-            } else {
-                etkinlikler = [];
-            }
-        }
-
-        function etkinlikleriKaydet() {
-            const depolanacakEtkinlikler = etkinlikler.map(etkinlik => ({
-                ...etkinlik,
-                date: etkinlik.date.toISOString()
-            }));
-            localStorage.setItem('neonCalendarEvents', JSON.stringify(depolanacakEtkinlikler));
+                takvimiRenderEt();
+                seciliTarihEtkinlikleriniRenderEt();
+            }, (error) => {
+                console.error("Etkinlikler yüklenirken hata oluştu:", error);
+                gosterAlert("Etkinlikler yüklenirken bir sorun oluştu.");
+            });
         }
 
         function takvimiRenderEt() {
@@ -271,15 +299,15 @@
 
                 const bugun = new Date();
                 const bugunMu = gunTarih.getDate() === bugun.getDate() &&
-                                bugun.getMonth() === bugun.getMonth() &&
-                                bugun.getFullYear() === bugun.getFullYear();
+                                gunTarih.getMonth() === bugun.getMonth() &&
+                                gunTarih.getFullYear() === bugun.getFullYear();
 
                 if (seciliMi) {
                     gunDiv.classList.add('bg-indigo-600', 'text-white', 'rounded-lg', 'shadow-lg', 'shadow-indigo-500/50', 'transform', 'scale-105');
                 } else if (bugunMu) {
-                    gunDiv.classList.add('border-2', 'border-indigo-400', 'rounded-lg', 'text-white');
+                    gunDiv.classList.add('border-2', 'border-cyan-400', 'rounded-lg', 'text-white');
                 } else if (etkinlikVarMi) {
-                    gunDiv.classList.add('text-indigo-300', 'font-bold');
+                    gunDiv.classList.add('text-orange-300', 'font-bold');
                 } else {
                     gunDiv.classList.add('text-white');
                 }
@@ -316,7 +344,7 @@
                 return etkinlikTarih.getDate() === seciliTarih.getDate() &&
                        etkinlikTarih.getMonth() === seciliTarih.getMonth() &&
                        etkinlikTarih.getFullYear() === seciliTarih.getFullYear();
-            }).sort((a, b) => a.date - b.date); // Saate göre sırala
+            }).sort((a, b) => a.date - b.date);
 
             if (gunEtkinlikleri.length === 0) {
                 etkinlikYokMesaji.classList.remove('hidden');
@@ -327,7 +355,7 @@
                     etkinlikKarti.className = 'bg-white/15 backdrop-blur-md rounded-xl p-4 flex justify-between items-center border border-white/15 shadow-md shadow-black/20 neon-card-glow';
                     etkinlikKarti.innerHTML = `
                         <div>
-                            <h4 class="text-xl font-bold text-white neon-text-subtle">${etkinlik.title}</h4>
+                            <h4 class="text-xl font-bold text-white neon-text-cyan">${etkinlik.title}</h4>
                             <p class="text-sm text-gray-200 mt-1">${etkinlik.date.toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}</p>
                             ${etkinlik.link ? `<a href="${etkinlik.link}" target="_blank" rel="noopener noreferrer" class="text-indigo-300 hover:text-indigo-400 text-sm italic transition-colors duration-200">${etkinlik.link}</a>` : ''}
                         </div>
@@ -342,9 +370,21 @@
                     `;
                     etkinlikListesi.appendChild(etkinlikKarti);
                 });
+                yetkilendirmeDurumunaGoreDugmeleriGuncelle();
+            }
+        }
 
-                document.querySelectorAll('.duzenle-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
+        function yetkilendirmeDurumunaGoreDugmeleriGuncelle() {
+            const duzenleDugmeleri = document.querySelectorAll('.duzenle-btn');
+            const silDugmeleri = document.querySelectorAll('.sil-btn');
+
+            if (adminGirisYapildiMi) {
+                etkinlikEkleBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                etkinlikEkleBtn.disabled = false;
+                duzenleDugmeleri.forEach(btn => {
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = false;
+                    btn.addEventListener('click', (e) => {
                         const etkinlikId = e.currentTarget.dataset.id;
                         const duzenlenecekEtkinlik = etkinlikler.find(etkinlik => etkinlik.id === etkinlikId);
                         if (duzenlenecekEtkinlik) {
@@ -352,11 +392,24 @@
                         }
                     });
                 });
-                document.querySelectorAll('.sil-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
+                silDugmeleri.forEach(btn => {
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = false;
+                    btn.addEventListener('click', (e) => {
                         const etkinlikId = e.currentTarget.dataset.id;
                         etkinligiSil(etkinlikId);
                     });
+                });
+            } else {
+                etkinlikEkleBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                etkinlikEkleBtn.disabled = true;
+                duzenleDugmeleri.forEach(btn => {
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = true;
+                });
+                silDugmeleri.forEach(btn => {
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = true;
                 });
             }
         }
@@ -365,23 +418,31 @@
             etkinlikFormu.reset();
             etkinlikFormuModali.classList.remove('hidden');
 
+            // Tarihi YYYY-MM-DD formatında almak için yardımcı fonksiyon
+            const formatTarih = (tarih) => {
+                const yil = tarih.getFullYear();
+                // getMonth() 0'dan başladığı için 1 eklememiz gerekiyor.
+                const ay = (tarih.getMonth() + 1).toString().padStart(2, '0');
+                const gun = tarih.getDate().toString().padStart(2, '0');
+                return `${yil}-${ay}-${gun}`;
+            };
+
             if (etkinlik) {
                 formBaslik.textContent = 'Etkinliği Düzenle';
                 etkinlikIdInput.value = etkinlik.id;
                 etkinlikBaslikInput.value = etkinlik.title;
                 etkinlikLinkInput.value = etkinlik.link;
-                etkinlikTarihInput.value = etkinlik.date.toISOString().substring(0, 10);
+                // Düzenlerken, mevcut etkinliğin doğru tarihini kullan
+                etkinlikTarihInput.value = formatTarih(etkinlik.date);
                 etkinlikSaatInput.value = etkinlik.date.toTimeString().substring(0, 5);
             } else {
                 formBaslik.textContent = 'Yeni Etkinlik Ekle';
                 etkinlikIdInput.value = '';
                 etkinlikBaslikInput.value = '';
                 etkinlikLinkInput.value = '';
-                if (seciliTarih) {
-                    etkinlikTarihInput.value = seciliTarih.toISOString().substring(0, 10);
-                } else {
-                    etkinlikTarihInput.value = new Date().toISOString().substring(0, 10);
-                }
+                // Yeni etkinlik eklerken, seçili tarihi kullan, yoksa bugünü kullan
+                const varsayilanTarih = seciliTarih ? seciliTarih : new Date();
+                etkinlikTarihInput.value = formatTarih(varsayilanTarih);
                 etkinlikSaatInput.value = '';
             }
         }
@@ -406,30 +467,95 @@
                 return;
             }
 
-            if (id) {
-                const etkinlikIndeksi = etkinlikler.findIndex(etkinlik => etkinlik.id === id);
-                if (etkinlikIndeksi > -1) {
-                    etkinlikler[etkinlikIndeksi] = { id, title: baslik, link, date: tarih };
+            try {
+                if (id) {
+                    // Firestore'da belgeyi güncelle
+                    const belgeRef = doc(db, 'events', id);
+                    await updateDoc(belgeRef, {
+                        title: baslik,
+                        link: link,
+                        date: Timestamp.fromDate(tarih)
+                    });
+                } else {
+                    // Firestore'a yeni belge ekle
+                    await addDoc(collection(db, 'events'), {
+                        title: baslik,
+                        link: link,
+                        date: Timestamp.fromDate(tarih)
+                    });
                 }
-            } else {
-                const yeniEtkinlik = { id: uuidOlustur(), title: baslik, link, date: tarih };
-                etkinlikler.push(yeniEtkinlik);
+                etkinlikFormunuKapat();
+                // Firestore onSnapshot listener'ı otomatik olarak UI'ı güncelleyecektir.
+            } catch (error) {
+                console.error("Etkinlik kaydedilirken hata oluştu:", error);
+                await gosterAlert("Etkinlik kaydedilirken bir hata oluştu. Yönetici olarak giriş yaptığınızdan emin olun.");
             }
-            etkinlikleriKaydet();
-            etkinlikFormunuKapat();
-            takvimiRenderEt();
-            seciliTarihEtkinlikleriniRenderEt();
         }
 
         async function etkinligiSil(id) {
             const onay = await gosterOnay("Bu etkinliği silmek istediğinizden emin misiniz?");
             if (onay) {
-                etkinlikler = etkinlikler.filter(etkinlik => etkinlik.id !== id);
-                etkinlikleriKaydet();
-                takvimiRenderEt();
-                seciliTarihEtkinlikleriniRenderEt();
+                try {
+                    // Firestore'dan belgeyi sil
+                    const belgeRef = doc(db, 'events', id);
+                    await deleteDoc(belgeRef);
+                    // Firestore onSnapshot listener'ı otomatik olarak UI'ı güncelleyecektir.
+                } catch (error) {
+                    console.error("Etkinlik silinirken hata oluştu:", error);
+                    await gosterAlert("Etkinlik silinirken bir hata oluştu. Yönetici olarak giriş yaptığınızdan emin olun.");
+                }
             }
         }
+
+        // Admin Giriş Fonksiyonları
+        async function adminGirisYap(e) {
+            e.preventDefault();
+            const email = adminEmailInput.value;
+            const password = adminSifreInput.value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                adminGirisModali.classList.add('hidden');
+                // Kullanıcı durumu onAuthStateChanged ile güncellenecektir.
+            } catch (error) {
+                console.error("Giriş hatası:", error);
+                let hataMesaji = "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol edin.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    hataMesaji = "Yanlış e-posta veya şifre.";
+                } else if (error.code === 'auth/invalid-email') {
+                    hataMesaji = "Geçersiz e-posta formatı.";
+                }
+                await gosterAlert(hataMesaji);
+            }
+        }
+
+        async function adminCikisYap() {
+            try {
+                await signOut(auth);
+                // Kullanıcı durumu onAuthStateChanged ile güncellenecektir.
+            } catch (error) {
+                console.error("Çıkış hatası:", error);
+                await gosterAlert("Çıkış yapılırken bir hata oluştu.");
+            }
+        }
+
+        // Kullanıcı yetkilendirme durumu değiştiğinde çalışır
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.uid === ADMIN_UID) {
+                adminGirisYapildiMi = true;
+                kullaniciEpostaGoster.textContent = user.email;
+                adminGirisCikisBtn.textContent = "Çıkış Yap";
+                adminGirisCikisBtn.onclick = adminCikisYap;
+                console.log("Admin olarak giriş yapıldı:", user.email);
+            } else {
+                adminGirisYapildiMi = false;
+                kullaniciEpostaGoster.textContent = "Misafir";
+                adminGirisCikisBtn.textContent = "Giriş Yap";
+                adminGirisCikisBtn.onclick = () => adminGirisModali.classList.remove('hidden');
+                console.log("Misafir olarak giriş yapıldı.");
+            }
+            yetkilendirmeDurumunaGoreDugmeleriGuncelle(); // Düğmeleri yetkiye göre güncelle
+        });
 
         function olayDinleyicileriniAyarla() {
             oncekiAyBtn.addEventListener('click', () => {
@@ -449,11 +575,14 @@
             etkinlikEkleBtn.addEventListener('click', () => etkinlikFormunuAc(null));
             etkinlikIptalBtn.addEventListener('click', etkinlikFormunuKapat);
             etkinlikFormu.addEventListener('submit', etkinligiKaydet);
+
+            adminGirisCikisBtn.addEventListener('click', () => adminGirisModali.classList.remove('hidden'));
+            adminGirisIptalBtn.addEventListener('click', () => adminGirisModali.classList.add('hidden'));
+            adminGirisFormu.addEventListener('submit', adminGirisYap);
         }
 
         window.onload = function() {
-            etkinlikleriYukle();
-            takvimiRenderEt();
+            etkinlikleriYukle(); // Etkinlikleri Firestore'dan yüklemeye başla
             olayDinleyicileriniAyarla();
         };
 
